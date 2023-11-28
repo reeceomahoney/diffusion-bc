@@ -1,0 +1,59 @@
+name: raisim
+
+obs_dim: 33
+action_dim: 12
+
+env_runner:
+  _target_: diffusion_policy.env_runner.raisim_runner.RaisimRunner
+  n_obs_steps: ${n_obs_steps}
+  n_action_steps: ${n_action_steps}
+  max_steps: 250
+  train_inference_steps: ${num_inference_steps}
+  test_inference_steps: 16
+
+env:
+  render: True
+  num_envs: 10
+  num_threads: 'auto'
+  simulation_dt: 0.0025
+  control_dt: 0.02
+  max_time: 5
+  enable_dynamics_randomization: False
+  action_scaling: 1.0
+  use_actuator_network: True
+
+  velocity_command:
+    limit_heading_velocity: 0.5
+    limit_lateral_velocity: 0.375
+    limit_yaw_rate: 0.625
+
+    # Less than this is considered to be a zero velocity command
+    limit_velocity_magnitude: 0.1
+
+    # These values are rescaled if their sum is not equal to 1
+    probability_zero_command: 0.2
+    probability_heading_command: 0.0
+    probability_lateral_command: 0.0
+    probability_yaw_command: 0.0
+    probability_direction_command: 0.0
+    probability_constant_command: 0.8   # includes all three velocities
+
+    # Time range in seconds when the next command is sampled
+    command_sampling_time_min: 3.0
+    command_sampling_time_max: 4.0
+
+  reward:
+    base_linear_velocity_tracking:
+      coeff: 1.0
+    base_angular_velocity_tracking:
+      coeff: 1.0
+
+dataset:
+  _target_: diffusion_policy.dataset.raisim_dataset.RaisimDataset
+  dataset_path: data/expert_data/fwd_50/data.npy
+  horizon: ${horizon}
+  pad_before: ${eval:'${n_obs_steps}-1+${n_latency_steps}'}
+  pad_after: ${eval:'${n_action_steps}-1'}
+  seed: 42
+  val_ratio: 0.001
+  max_train_episodes: null

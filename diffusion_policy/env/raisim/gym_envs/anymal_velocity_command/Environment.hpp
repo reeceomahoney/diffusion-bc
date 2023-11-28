@@ -261,25 +261,8 @@ namespace raisim {
 
         void recordRewards() {
             rewardHandler_.computeRewards(observationHandler_);
-            rewards_.record("base_orientation", rewardCurriculumFactor_ * rewardHandler_.getBaseOrientationReward());
             rewards_.record("base_linear_velocity_tracking", rewardHandler_.getBaseLinearVelocityTrackingReward());
             rewards_.record("base_angular_velocity_tracking", rewardHandler_.getBaseAngularVelocityTrackingReward());
-            rewards_.record("joint_torque", rewardCurriculumFactor_ * rewardHandler_.getJointTorqueReward());
-            rewards_.record("joint_velocity", rewardCurriculumFactor_ * rewardHandler_.getJointVelocityReward());
-            rewards_.record("action_smoothness",
-                            rewardCurriculumFactor_ * rewardHandler_.getActionSmoothnessReward());
-            rewards_.record("feet_clearance", rewardHandler_.getFeetClearanceReward());
-            rewards_.record("trotting", rewardHandler_.getTrottingReward());
-            rewards_.record("feet_slip", rewardCurriculumFactor_ * rewardHandler_.getFeetSlipReward());
-            rewards_.record("joint_position", rewardCurriculumFactor_ * rewardHandler_.getJointPositionReward());
-            rewards_.record("pronking", rewardCurriculumFactor_ * rewardHandler_.getPronkingReward());
-            rewards_.record("base_height", rewardCurriculumFactor_ * rewardHandler_.getBaseHeightReward());
-            rewards_.record("symmetry_z", rewardCurriculumFactor_ * rewardHandler_.getSymmetryZReward());
-            rewards_.record("feet_deviation", rewardCurriculumFactor_ * rewardHandler_.getFeetDeviationReward());
-            rewards_.record("joint_jerk", rewardCurriculumFactor_ * rewardHandler_.getJointJerkReward());
-            rewards_.record("vertical_linear_velocity", rewardCurriculumFactor_ * rewardHandler_.getVerticalLinearVelocityReward());
-            rewards_.record("horizontal_angular_velocity",
-                            rewardCurriculumFactor_ * rewardHandler_.getHorizontalAngularVelocityReward());
             rewardHandler_.clearBuffers();
         }
 

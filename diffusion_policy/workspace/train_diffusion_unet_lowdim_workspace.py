@@ -18,7 +18,6 @@ import numpy as np
 import random
 import wandb
 import tqdm
-import shutil
 
 from diffusion_policy.common.pytorch_util import dict_apply, optimizer_to
 from diffusion_policy.workspace.base_workspace import BaseWorkspace
@@ -109,7 +108,8 @@ class TrainDiffusionUnetLowdimWorkspace(BaseWorkspace):
         env_runner: BaseLowdimRunner
         env_runner = hydra.utils.instantiate(
             cfg.task.env_runner,
-            output_dir=self.output_dir)
+            output_dir=self.output_dir,
+            env_cfg=cfg.task.env)
         assert isinstance(env_runner, BaseLowdimRunner)
 
         # configure logging

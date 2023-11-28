@@ -25,6 +25,7 @@ namespace raisim {
             if (&cfg_["render"])
                 render_ = cfg_["render"].template As<bool>();
             init();
+            disableEarlyTermination();
         }
 
         ~VectorizedEnvironment() {
