@@ -22,6 +22,7 @@ class DiffusionTransformerLowdimPolicy(BaseLowdimPolicy):
             num_inference_steps=None,
             obs_as_cond=False,
             pred_action_steps_only=False,
+            x_sampling_steps=0,
             # parameters passed to step
             **kwargs):
         super().__init__()
@@ -50,6 +51,8 @@ class DiffusionTransformerLowdimPolicy(BaseLowdimPolicy):
         if num_inference_steps is None:
             num_inference_steps = noise_scheduler.config.num_train_timesteps
         self.num_inference_steps = num_inference_steps
+
+        self.x_sampling_steps = x_sampling_steps
     
     # ========= inference  ============
     def conditional_sample(self, 
@@ -80,6 +83,20 @@ class DiffusionTransformerLowdimPolicy(BaseLowdimPolicy):
             # 3. compute previous image: x_t -> x_t-1
             trajectory = scheduler.step(
                 model_output, t, trajectory, 
+                generator=generator,
+                **kwargs
+                ).prev_sample
+        
+        for _ in range(self.x_sampling_steps):
+            # 1. apply conditioning
+            trajectory[condition_mask] = condition_data[condition_mask]
+
+            # 2. predict model output
+            model_output = model(trajectory, 1, cond)
+
+            # 3. compute previous image: x_t -> x_t-1
+            trajectory = scheduler.step(
+                model_output, 1, trajectory, 
                 generator=generator,
                 **kwargs
                 ).prev_sample

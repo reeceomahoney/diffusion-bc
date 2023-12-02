@@ -108,7 +108,8 @@ class TrainDiffusionTransformerLowdimWorkspace(BaseWorkspace):
         env_runner: BaseLowdimRunner
         env_runner = hydra.utils.instantiate(
             cfg.task.env_runner,
-            output_dir=self.output_dir)
+            output_dir=self.output_dir,
+            env_cfg=cfg.task.env)
         assert isinstance(env_runner, BaseLowdimRunner)
 
         # configure logging

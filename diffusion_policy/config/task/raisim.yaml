@@ -8,8 +8,6 @@ env_runner:
   n_obs_steps: ${n_obs_steps}
   n_action_steps: ${n_action_steps}
   max_steps: 250
-  train_inference_steps: ${num_inference_steps}
-  test_inference_steps: 16
 
 env:
   render: True
@@ -21,6 +19,8 @@ env:
   enable_dynamics_randomization: False
   action_scaling: 1.0
   use_actuator_network: True
+  server_port: 8080
+  early_termination: True
 
   velocity_command:
     limit_heading_velocity: 0.5
@@ -50,7 +50,7 @@ env:
 
 dataset:
   _target_: diffusion_policy.dataset.raisim_dataset.RaisimDataset
-  dataset_path: data/expert_data/fwd_50/data.npy
+  dataset_path: data/expert_data/fwd_rand_init/data.npy
   horizon: ${horizon}
   pad_before: ${eval:'${n_obs_steps}-1+${n_latency_steps}'}
   pad_after: ${eval:'${n_action_steps}-1'}

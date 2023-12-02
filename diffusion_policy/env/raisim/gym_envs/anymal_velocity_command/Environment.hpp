@@ -135,7 +135,7 @@ namespace raisim {
             /// visualize if it is the first environment
             if (visualizable_) {
                 server_ = std::make_unique<raisim::RaisimServer>(world_.get());
-                server_->launchServer();
+                server_->launchServer(cfg["server_port"].template As<int>());
                 server_->focusOn(robot_);
                 visualizationHandler_.setServer(server_);
             }

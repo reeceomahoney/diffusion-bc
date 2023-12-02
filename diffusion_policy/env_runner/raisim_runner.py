@@ -22,26 +22,22 @@ class RaisimRunner(BaseLowdimRunner):
             max_steps,
             n_obs_steps,
             n_action_steps,
-            train_inference_steps,
-            test_inference_steps=16,
             tqdm_interval_sec=5.0,
         ):
         super().__init__(output_dir)
 
         env_dir = os.path.dirname(os.path.realpath(__file__)) + "/../env/raisim"
         env_cfg = OmegaConf.to_yaml(env_cfg)
-        self.env = VecEnv( RaisimGymEnv(env_dir + "/resources", env_cfg), normalize_ob=False)
+        self.env = VecEnv(RaisimGymEnv(env_dir + "/resources", env_cfg), normalize_ob=False)
 
         self.n_obs_steps = n_obs_steps
         self.n_action_steps = n_action_steps
         self.max_steps = max_steps
         self.n_envs = self.env.num_envs
-        self.train_inference_steps = train_inference_steps
-        self.test_inference_steps = test_inference_steps
         self.tqdm_interval_sec = tqdm_interval_sec
 
 
-    def run(self, policy: BaseLowdimPolicy):
+    def run(self, policy: BaseLowdimPolicy, eval_run=False):
         device = policy.device
         env = self.env
         ep_rewards = []
@@ -67,9 +63,7 @@ class RaisimRunner(BaseLowdimRunner):
 
             # run policy
             with torch.no_grad():
-                policy.num_inference_steps = self.test_inference_steps
                 action_dict = policy.predict_action(obs_dict)
-                policy.num_inference_steps = self.train_inference_steps
 
             # device_transfer
             np_action_dict = dict_apply(action_dict,
@@ -92,6 +86,9 @@ class RaisimRunner(BaseLowdimRunner):
             
             if step_idx >= self.max_steps:
                 done = True
+            
+            if eval_run:
+                done = False
 
             pbar.update(len(action))
         pbar.close()

@@ -17,21 +17,28 @@ import dill
 import wandb
 import json
 from diffusion_policy.workspace.base_workspace import BaseWorkspace
+from omegaconf import open_dict
 
 @click.command()
 @click.option('-c', '--checkpoint', required=True)
 @click.option('-o', '--output_dir', required=True)
 @click.option('-d', '--device', default='cuda:0')
 def main(checkpoint, output_dir, device):
-    if os.path.exists(output_dir):
-        click.confirm(f"Output path {output_dir} already exists! Overwrite?", abort=True)
     pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
     
     # load checkpoint
     payload = torch.load(open(checkpoint, 'rb'), pickle_module=dill)
     cfg = payload['cfg']
+    with open_dict(cfg):
+        cfg.task.env.num_envs = 1
+        cfg.task.env.server_port = 8081
+        cfg.task.env.early_termination = True
+        # cfg.policy.x_sampling_steps = 8
+
+
     cls = hydra.utils.get_class(cfg._target_)
     workspace = cls(cfg, output_dir=output_dir)
+    # workspace = cls(cfg)
     workspace: BaseWorkspace
     workspace.load_payload(payload, exclude_keys=None, include_keys=None)
     
@@ -47,8 +54,9 @@ def main(checkpoint, output_dir, device):
     # run eval
     env_runner = hydra.utils.instantiate(
         cfg.task.env_runner,
-        output_dir=output_dir)
-    runner_log = env_runner.run(policy)
+        output_dir=output_dir,
+        env_cfg=cfg.task.env)
+    runner_log = env_runner.run(policy, eval_run=True)
     
     # dump log to json
     json_log = dict()

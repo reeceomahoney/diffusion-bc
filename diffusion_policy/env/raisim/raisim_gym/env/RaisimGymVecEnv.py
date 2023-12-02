@@ -71,6 +71,7 @@ class RaisimGymVecEnv:
     def observe(self, update_statistics=True):
         self.wrapper.observe(self._observation, update_statistics)
         return self._observation[..., :33]
+        # return np.concatenate([self._observation[..., :33], self._observation[..., 36:]], axis=-1)
 
     def reset(self, conditional_reset=False):
         self._reward = np.zeros(self.num_envs, dtype=np.float32)
