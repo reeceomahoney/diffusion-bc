@@ -241,7 +241,8 @@ class TrainDiffusionTransformerLowdimWorkspace(BaseWorkspace):
                     with torch.no_grad():
                         # sample trajectory from training set, and evaluate difference
                         batch = dict_apply(train_sampling_batch, lambda x: x.to(device, non_blocking=True))
-                        obs_dict = {'obs': batch['obs']}
+                        obs_dict = {'obs': batch['obs'],
+                                    'past_action': batch['action'][:,0]}
                         gt_action = batch['action']
                         
                         result = policy.predict_action(obs_dict)

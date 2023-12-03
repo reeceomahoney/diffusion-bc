@@ -51,10 +51,12 @@ class RaisimRunner(BaseLowdimRunner):
             leave=False, mininterval=self.tqdm_interval_sec)
         done = False
         step_idx = 0
+        past_action = np.zeros((self.n_envs, 12)).astype(np.float32)
         while not done:
             obs_seq = np.stack(obs_deque)
             obs_seq = np.transpose(obs_seq, (1, 0, 2))
-            np_obs_dict = {'obs': obs_seq.astype(np.float32)}
+            np_obs_dict = {'obs': obs_seq.astype(np.float32),
+                           'past_action': past_action}
 
             # device transfer
             obs_dict = dict_apply(np_obs_dict, 
@@ -78,6 +80,7 @@ class RaisimRunner(BaseLowdimRunner):
                 obs, reward, dones = env.step(action[i])
                 obs_deque.append(obs)
                 ep_rewards.append(np.mean(reward))
+                past_action = action[i]
 
                 step_idx += 1
                 done = np.any(dones)

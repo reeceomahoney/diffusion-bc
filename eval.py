@@ -37,8 +37,8 @@ def main(checkpoint, output_dir, device):
 
 
     cls = hydra.utils.get_class(cfg._target_)
-    workspace = cls(cfg, output_dir=output_dir)
-    # workspace = cls(cfg)
+    # workspace = cls(cfg, output_dir=output_dir)
+    workspace = cls(cfg)
     workspace: BaseWorkspace
     workspace.load_payload(payload, exclude_keys=None, include_keys=None)
     
@@ -56,7 +56,12 @@ def main(checkpoint, output_dir, device):
         cfg.task.env_runner,
         output_dir=output_dir,
         env_cfg=cfg.task.env)
-    runner_log = env_runner.run(policy, eval_run=True)
+    try:
+        runner_log = env_runner.run(policy, eval_run=True)
+    except KeyboardInterrupt:
+        print('KeyboardInterrupt')
+        env_runner.env.kill_server()
+        sys.exit(0)
     
     # dump log to json
     json_log = dict()

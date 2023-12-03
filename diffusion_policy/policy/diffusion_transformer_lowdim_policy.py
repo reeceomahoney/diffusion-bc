@@ -114,8 +114,9 @@ class DiffusionTransformerLowdimPolicy(BaseLowdimPolicy):
         """
 
         assert 'obs' in obs_dict
-        assert 'past_action' not in obs_dict # not implemented yet
+        # assert 'past_action' not in obs_dict # not implemented yet
         nobs = self.normalizer['obs'].normalize(obs_dict['obs'])
+        nact = self.normalizer['action'].normalize(obs_dict['past_action'])
         B, _, Do = nobs.shape
         To = self.n_obs_steps
         assert Do == self.obs_dim
@@ -144,6 +145,8 @@ class DiffusionTransformerLowdimPolicy(BaseLowdimPolicy):
             cond_mask = torch.zeros_like(cond_data, dtype=torch.bool)
             cond_data[:,:To,Da:] = nobs[:,:To]
             cond_mask[:,:To,Da:] = True
+            cond_data[:,0,:Da] = nact
+            cond_mask[:,0,:Da] = True
 
         # run sampling
         nsample = self.conditional_sample(
