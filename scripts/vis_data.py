@@ -7,4 +7,4 @@ roll = np.transpose(roll, (1, 0))
 
 import matplotlib.pyplot as plt
 plt.plot(roll)
-plt.show()
+plt.savefig('roll.png')

@@ -4,14 +4,14 @@ import numpy as np
 
 # load dataset
 data_dir = os.path.dirname(os.path.realpath(__file__)) + '/../data/expert_data/'
-dataset = 'fwd_rand_init_act'
+dataset = 'rand'
 data = np.load(data_dir + dataset + '/raw_data.npy', allow_pickle=True).item()
 
 # process data
 obs_dim = 33
-# data["obs"] = data.pop("observations")[..., :obs_dim]
-obs = data.pop("observations")
-data["obs"] = np.concatenate([obs[..., :obs_dim], obs[..., obs_dim+3:]], axis=-1)
+data["obs"] = data.pop("observations")[..., :obs_dim]
+# obs = data.pop("observations")
+# data["obs"] = np.concatenate([obs[..., :obs_dim], obs[..., obs_dim+3:]], axis=-1)
 data["action"] = data.pop("actions")
 action_mean = np.array([-0.089, 0.712, -1.03, 0.089, 0.712, -1.03, -0.089, 
 -0.712, 1.03, 0.089, -0.712, 1.03])
