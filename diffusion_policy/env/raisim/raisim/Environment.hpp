@@ -147,7 +147,7 @@ namespace raisim {
             Eigen::VectorXd gc = gc_init_, gv = gv_init_;
 
             if (enableDynamicsRandomization_) {
-                gc[2] += 0.2 * std::abs(uniformRealDistribution_(gen_));
+                gc[2] += 0.1 * std::abs(uniformRealDistribution_(gen_));
 
                 gc.tail(12) +=
                         0.1 * Eigen::VectorXd::NullaryExpr(12, [&]() { return uniformRealDistribution_(gen_); });
@@ -163,6 +163,14 @@ namespace raisim {
             if (enableDynamicsRandomization_) {
                 robot_->setMass(0, baseMassMean_ + std::clamp(normalDistribution_(gen_) * 10., -15., 15.));
                 robot_->updateMassInfo();
+
+                // auto materialPairGroundFootProperties = world_->getMaterialPairProperties("ground_material", "foot_material");
+                // world_->setMaterialPairProp(
+                //         "ground_material", "foot_material",
+                //         std::clamp(0.6 + normalDistribution_(gen_) * 0.5, 0.1, 2.0),
+                //         materialPairGroundFootProperties.c_r,
+                //         materialPairGroundFootProperties.r_th
+                // );
 
                 if (useActuatorNetwork_) {
                     actuationPositionErrorInputScaling_ = std::clamp(1. + normalDistribution_(gen_) * 0.05, 0.975, 1.025);
@@ -214,7 +222,7 @@ namespace raisim {
                 if (server_) server_->lockVisualizationServerMutex();
 
                 /// Use the actuation network to compute torques
-                if (i % 2 == 0 && useActuatorNetwork_) {
+                if (i % int(0.005 / simulation_dt_ + 1e-10) == 0 && useActuatorNetwork_) {
                     robot_->getState(gc_, gv_);
 
                     Eigen::VectorXd gf(gvDim_);

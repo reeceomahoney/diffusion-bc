@@ -13,12 +13,8 @@ namespace py = pybind11;
 using namespace raisim;
 int THREAD_COUNT = 1;
 
-#ifndef ENVIRONMENT_NAME
-#define ENVIRONMENT_NAME RaisimGymEnv
-#endif
-
-PYBIND11_MODULE(RAISIM_GYM_TORCH_ENV_NAME, m) {
-    py::class_<VectorizedEnvironment<ENVIRONMENT>>(m, RSG_MAKE_STR(ENVIRONMENT_NAME))
+PYBIND11_MODULE(raisim_env, m) {
+    py::class_<VectorizedEnvironment<ENVIRONMENT>>(m, RSG_MAKE_STR(RaisimWrapper))
             .def(py::init<std::string, std::string>(), py::arg("resourceDir"), py::arg("cfg"))
             .def("init", &VectorizedEnvironment<ENVIRONMENT>::init)
             .def("reset", &VectorizedEnvironment<ENVIRONMENT>::reset)

@@ -19,13 +19,14 @@ namespace raisim {
 
     public:
 
-        explicit VectorizedEnvironment(std::string resourceDir, std::string cfg, bool normalizeObservation = true)
-                : resourceDir_(resourceDir), cfgString_(cfg), normalizeObservation_(normalizeObservation) {
+        explicit VectorizedEnvironment(std::string resourceDir, std::string cfg)
+                : resourceDir_(resourceDir), cfgString_(cfg){
             Yaml::Parse(cfg_, cfg);
             if (&cfg_["render"])
                 render_ = cfg_["render"].template As<bool>();
             init();
             earlyTerminationActive_ = cfg_["early_termination"].template As<bool>();
+            normalizeObservation_ = cfg_["normalize_observation"].template As<bool>();
         }
 
         ~VectorizedEnvironment() {
@@ -36,6 +37,8 @@ namespace raisim {
         const std::string &getResourceDir() const { return resourceDir_; }
 
         const std::string &getCfgString() const { return cfgString_; }
+
+        const bool &getNormalizeObservation() const { return normalizeObservation_; }
 
         void init() {
             THREAD_COUNT = cfg_["num_threads"].template As<int>();
@@ -230,8 +233,7 @@ namespace raisim {
         }
 
         void killServer() {
-            for (auto *env: environments_)
-                env->killServer();
+            environments_[0]->killServer();
         }
 
     private:

@@ -1,68 +1,45 @@
-cmake_minimum_required(VERSION 3.10)
-project(_lfmc_gym)
+cmake_minimum_required(VERSION 3.28)
+project(raisim_env)
 set(CMAKE_CXX_STANDARD 17)
 
+# ##############################################################################
+# dependencies
+# ##############################################################################
+
+# python
+set(Python_ROOT_DIR "/home/reece/miniconda3/envs/robodiff")
+find_package(Python COMPONENTS Interpreter Development)
+
+# raisim
 list(APPEND CMAKE_PREFIX_PATH "$ENV{RAISIM_LIB}/raisim/linux")
+find_package(raisim CONFIG REQUIRED)
 
-########################
-### Helper Functions ###
-########################
-MACRO(SUBDIRLIST result curdir)
-    FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
-    SET(dirlist "")
-    FOREACH (child ${children})
-        IF (IS_DIRECTORY ${curdir}/${child})
-            LIST(APPEND dirlist ${child})
-        ENDIF ()
-    ENDFOREACH ()
-    SET(${result} ${dirlist})
-ENDMACRO()
-
-####################
-### Dependencies ###
-####################
-set(Dependencies)
-
-# PyBind
-find_package(pybind11 REQUIRED)
-
-# Eigen3
-find_package(Eigen3 REQUIRED)
-
-# OpenMP
+# openmp
 find_package(OpenMP REQUIRED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 
-# RaiSim
-find_package(raisim CONFIG REQUIRED)
+# pybind
+find_package(pybind11 REQUIRED)
 
-# Dependencies
-include_directories(dependencies/networks_minimal/include)
-include_directories(dependencies/actuation_dynamics/include)
+# eigen
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIRS})
 
-######################
-### Build and Link ###
-######################
-set(RAISIM_GYM_ENV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/gym_envs)
-SUBDIRLIST(SUBDIRS ${RAISIM_GYM_ENV_DIR})
+# ##############################################################################
+# build
+# ##############################################################################
 
-######## Env ##########
-FOREACH (subdir ${SUBDIRS})
-    pybind11_add_module(${subdir} raisim_gym/env/raisim_gym.cpp raisim_gym/env/Yaml.cpp)
-    set_target_properties(${subdir} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/raisim_gym/env/bin)
-    target_link_libraries(${subdir} PRIVATE raisim::raisim ${Dependencies})
-    target_include_directories(${subdir} PUBLIC ${EIGEN3_INCLUDE_DIRS} ${RAISIM_GYM_ENV_DIR}/${subdir} ${CMAKE_CURRENT_SOURCE_DIR}/raisim_gym/env)
-    target_compile_options(${subdir} PRIVATE -fPIC -O3 -flto -mno-avx2)
-    target_compile_definitions(${subdir} PRIVATE "-DRAISIM_GYM_TORCH_ENV_NAME=${subdir}")
-    target_compile_definitions(${subdir} PRIVATE "$<$<CONFIG:Release>:EIGEN_NO_DEBUG>")
-    target_compile_definitions(${subdir} PRIVATE EIGEN_DONT_PARALLELIZE)
-
-    if (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "Debug")
-        message("[RAISIM_GYM] BUILDING THE DEBUG APP for ${subdir}")
-        add_executable(${subdir}_debug_app raisim_gym/env/debug_app.cpp raisim_gym/env/Yaml.cpp)
-        target_link_libraries(${subdir}_debug_app PRIVATE raisim::raisim)
-        target_include_directories(${subdir}_debug_app PUBLIC gym_envs/${subdir} ${EIGEN3_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/raisim_gym/env)
-        target_compile_options(${subdir}_debug_app PRIVATE -fPIC -g -O0 -mno-avx2)
-    endif ()
-ENDFOREACH ()
+pybind11_add_module(${PROJECT_NAME} raisim/raisim_gym.cpp raisim/Yaml.cpp)
+target_compile_definitions(
+  ${PROJECT_NAME}
+  PRIVATE "$<$<CONFIG:Release>:EIGEN_NO_DEBUG>" EIGEN_DONT_PARALLELIZE)
+set_target_properties(
+  ${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY
+                             ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+target_compile_options(${PROJECT_NAME} PRIVATE -fPIC -O3 -flto -mno-avx2)
+target_link_libraries(${PROJECT_NAME} PRIVATE raisim::raisim)
+target_include_directories(
+  ${PROJECT_NAME}
+  PUBLIC dependencies/networks_minimal/include
+         dependencies/actuation_dynamics/include ${EIGEN3_INCLUDE_DIRS})
