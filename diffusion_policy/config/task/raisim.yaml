@@ -5,6 +5,7 @@ action_dim: 12
 
 env_runner:
   _target_: diffusion_policy.env_runner.raisim_runner.RaisimRunner
+  obs_dim: ${obs_dim}
   n_obs_steps: ${n_obs_steps}
   n_action_steps: ${n_action_steps}
   max_steps: 250
@@ -13,14 +14,15 @@ env:
   render: True
   num_envs: 10
   num_threads: 'auto'
-  simulation_dt: 0.0025
+  simulation_dt: 0.005
   control_dt: 0.02
-  max_time: 5
+  max_time: 10000
   enable_dynamics_randomization: False
   action_scaling: 1.0
   use_actuator_network: True
   server_port: 8080
   early_termination: True
+  normalize_observation: False
 
   velocity_command:
     limit_heading_velocity: 0.5
@@ -50,10 +52,10 @@ env:
 
 dataset:
   _target_: diffusion_policy.dataset.raisim_dataset.RaisimDataset
-  dataset_path: data/expert_data/fwd_rand_init/data.npy
+  dataset_path: data/expert_data/processed_data/fwd_small.npy
   horizon: ${horizon}
   pad_before: ${eval:'${n_obs_steps}-1+${n_latency_steps}'}
   pad_after: ${eval:'${n_action_steps}-1'}
   seed: 42
-  val_ratio: 0.001
+  val_ratio: 0.005
   max_train_episodes: null
